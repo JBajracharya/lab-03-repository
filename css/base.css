@@ -1,4 +1,7 @@
 
+* {
+    box-sizing: border-box;
+}
 html, body {
     background-color: #047458;
 }
@@ -8,5 +11,9 @@ h1 {
 }
 
 h2 {
+    font-family: 'Aclonica', sans-serif;
+}
+
+p {
     font-family: 'Aclonica', sans-serif;
 }

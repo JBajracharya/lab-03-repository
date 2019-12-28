@@ -1,79 +1,98 @@
 'use strict';
 
-const options = [];
+let options = [];
+let gallery = [];
+const myTemplate = Handlebars.compile($('#photo-template').html());
+let page = 'data/page-1.json';
 
 function Horn(img_url, title, description, keyword, horn) {
-	this.img_url = img_url;
-	this.title = title;
-	this.description = description;
-	this.keyword = keyword;
-	this.horn = horn;
+    this.img_url = img_url;
+    this.title = title;
+    this.description = description;
+    this.keyword = keyword;
+    this.horn = horn;
 }
 
-Horn.prototype.renderWithJquery = function() {
-	$('#photo-template').append(`
-    <div>
-        <h2> ${this.title}</h2>
-        <img src="${this.img_url}" />
-    </div>
-    `);
-};
+Horn.prototype.renderWithHandlebars = function () {
+    const myHtml = myTemplate(this);
+    $('#photos').append(myHtml);
+}
 
-Horn.prototype.renderWithJqueryClone = function() {
-	let clone = $('#photo-template').clone();
-
-	clone.find('h2').text(this.title);
-    clone.find('img').attr('src', this.img_url);
-    clone.attr('class', `${this.keyword}`);
-	clone.removeAttr('id');
-
-	$('#horns').append(clone);
-};
-
-Horn.prototype.renderOptions = function() {
-	if (!options.includes(this.keyword)) {
-		options.push(this.keyword);
-		$('#keywords').append(`
+Horn.prototype.renderOptions = function () {
+    if (!options.includes(this.keyword)) {
+        options.push(this.keyword);
+        $('#keywords').append(`
         <option value=${this.keyword} > ${this.keyword}</option>
         `);
-		// console.log('key',this.keyword);
-	}
-};
+    }
+}
 
-Horn.prototype.renderKeywordImages = function() {
-	$('#keywords').on('click', function() {
-		let selectedItem = $('#keywords').val();
-		console.log(1);
-		if (selectedItem === this.keyword) {
-			this.renderWithJquery();
-		}
-	});
-};
+function renderPage() {
+    $.get(page, 'json').then(
+        (data) => {
+            data.forEach(objFromJsonFile => {
+                let horn = new Horn(objFromJsonFile.image_url, objFromJsonFile.title, objFromJsonFile.description, objFromJsonFile.keyword, objFromJsonFile.horns);
+                horn.renderWithHandlebars();
+                horn.renderOptions();
+                gallery.push(horn);
+            });
+            $('div').show();
+            $(`div:first-child`).hide();
+        });
+}
 
-$.get('data/page-1.json', 'json').then((data) => {
-	data.forEach((objFromJsonFile) => {
-		let horn = new Horn(
-			objFromJsonFile.image_url,
-			objFromJsonFile.title,
-			objFromJsonFile.description,
-			objFromJsonFile.keyword,
-			objFromJsonFile.horn
-		);
-		// console.log(horn);
-		// console.log(objFromJsonFile.img_url);
-		// console.log(objFromJsonFile.title);
-		// debugger;
-		horn.renderWithJqueryClone();
-		horn.renderOptions();
-		horn.renderKeywordImages();
-	});
+//Display images of selected keyword only
+$('#keywords').on('change', function () {
+    let selectedItem = $('option:selected').val();
+    if (selectedItem !== 'default') {
+        $('div').hide();
+        $(`div[class = "${selectedItem}"]`).show();
+    } else {
+        $('div').show();
+    }
 });
 
+//dispay different pages when clicked on next page
+$('#changePageBtn').click(function () {
+    $('div').remove();
+    if (page === 'data/page-1.json') {
+        gallery = [];
+        page = 'data/page-2.json';
+    } else{
+        gallery = [];
+        page = 'data/page-1.json';
+    }
+    renderPage();
+})
 
-$('#keywords').on('change', function() {
-	$('section').hide();
-	let selectedItem = $('option:selected').val();
-	console.log('1', selectedItem);
 
-	$(`.${selectedItem}`).show();
+$('#sortByHornBtn').on('click', function(){
+    sortByHorn();
 });
+
+$('#sortByTitleBtn').on('click', function(){
+    sortByTitle();
+})
+
+function sortByHorn() {
+    gallery.sort(function(a, b){
+        if(a.horn > b.horn) return 1;
+        if(b.horn > a.horn) return -1;
+        return 0;
+    });
+    $('div').remove();
+    gallery.forEach(element => element.renderWithHandlebars());
+}
+
+function sortByTitle(){
+    gallery.sort(function(a, b){
+        if(a.title > b.title) return 1;
+        if(b.title > a.title) return -1;
+        return 0;
+    });
+    $('div').remove();
+    gallery.forEach(element => element.renderWithHandlebars());
+}
+
+renderPage()
+

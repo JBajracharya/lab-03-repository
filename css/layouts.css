@@ -1,6 +1,16 @@
 section {
-    float: left;
+    /* float: left; */
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
     margin: .5em;
+    height: 420px;
+    margin: auto;
+}
+
+div {
+    margin: 1%;
 }
 
 img {
@@ -10,5 +20,8 @@ img {
 
 p, h2{
     width: 300px;
+}
+h2 {
+    height: 40px;
 }
 
